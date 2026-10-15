@@ -24,12 +24,35 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _productsLoading = true;
   String? _categoriesError;
   String? _productsError;
+  bool _isLoadingMoreProducts = false;
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_loadMoreProducts);
     context.read<HomeCubit>().getCategories();
-    context.read<HomeCubit>().getProducts(1);
+    context.read<HomeCubit>().getProducts(null);
+  }
+
+  void _loadMoreProducts() {
+    if (!_scrollController.hasClients) return;
+    final pixels = _scrollController.position.pixels;
+    final maxScrollExtent = _scrollController.position.maxScrollExtent;
+    const triggerDistance = 200;
+
+    if (pixels >= maxScrollExtent - triggerDistance) {
+      context.read<HomeCubit>().loadMoreProducts();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_loadMoreProducts)
+      ..dispose();
+    super.dispose();
   }
 
   int _selectedCategoryIndex = 0;
@@ -50,20 +73,30 @@ class _HomeScreenState extends State<HomeScreen> {
           _categoriesError = state.error;
         } else if (state is ProductLoadingState) {
           _productsLoading = true;
+          _isLoadingMoreProducts = false;
           _productsError = null;
         } else if (state is ProductSuccessState) {
           _products = state.products;
           _productsLoading = false;
+          _isLoadingMoreProducts = false;
           _productsError = null;
         } else if (state is ProductErrorState) {
           _productsLoading = false;
           _productsError = state.error;
+        } else if (state is ProductsLoadingMore) {
+          _isLoadingMoreProducts = true;
+        } else if (state is ProductsLoadingError) {
+          _isLoadingMoreProducts = false;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not load more products: ${state.error}')),
+          );
         }
       },
       builder: (context, state) => Scaffold(
         backgroundColor: AppTheme.background,
         body: SafeArea(
           child: CustomScrollView(
+            controller: _scrollController,
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
@@ -157,19 +190,23 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? const Center(child: CircularProgressIndicator())
                             : ListView.separated(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: _categories.length,
+                                itemCount: _categories.length + 1,
                                 separatorBuilder: (context, index) =>
                                     const SizedBox(width: 12),
                                 itemBuilder: (context, index) {
                                   return CategoryChip(
-                                    label: _categories[index].name,
+                                    label: index == 0
+                                        ? 'All'
+                                        : _categories[index - 1].name,
                                     isSelected: _selectedCategoryIndex == index,
                                     onTap: () {
                                       setState(() {
                                         _selectedCategoryIndex = index;
                                       });
                                       context.read<HomeCubit>().getProducts(
-                                        _categories[index].id,
+                                        index == 0
+                                            ? null
+                                            : _categories[index - 1].id,
                                       );
                                     },
                                   );
@@ -221,6 +258,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     delegate: SliverChildBuilderDelegate((context, index) {
                       return ProductCard(product: _products[index]);
                     }, childCount: _products.length),
+                  ),
+                ),
+              if (_isLoadingMoreProducts)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
                   ),
                 ),
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
