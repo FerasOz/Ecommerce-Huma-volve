@@ -1,4 +1,4 @@
-import 'package:ecommerce_app_huma_volve/features/home/models/product_model.dart';
+import 'package:ecommerce_app_huma_volve/features/home/domain/entities/product_entity.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../widgets/color_selector.dart';
@@ -6,7 +6,7 @@ import '../widgets/size_selector.dart';
 import '../../../core/widgets/primary_button.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
-  final ProductModel product;
+  final ProductEntity product;
 
   const ProductDetailsScreen({super.key, required this.product});
 
@@ -54,8 +54,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               background: Hero(
                 tag: 'product-${widget.product.id}',
                 child: Image.network(
-                  widget.product.images?.isNotEmpty == true
-                      ? widget.product.images!.first
+                  widget.product.images.isNotEmpty == true
+                      ? widget.product.images.first
                       : '',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
@@ -91,14 +91,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            widget.product.title ?? 'Product',
+                            widget.product.title,
                             style: Theme.of(context).textTheme.headlineLarge
                                 ?.copyWith(fontSize: 28, height: 1.2),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Text(
-                          '\$${widget.product.price!.toStringAsFixed(2)}',
+                          '\$${widget.product.price.toStringAsFixed(2)}',
                           style: Theme.of(context).textTheme.headlineLarge
                               ?.copyWith(color: AppTheme.primary, fontSize: 24),
                         ),
@@ -114,7 +114,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      widget.product.description ?? 'No description available',
+                      widget.product.description,
                       style: Theme.of(context).textTheme.bodyMedium
                           ?.copyWith(height: 1.6, fontSize: 16),
                     ),
