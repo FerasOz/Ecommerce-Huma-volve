@@ -22,6 +22,16 @@ class HomeRepositoryImpl extends HomeRepository {
   }
 
   @override
+  Future<Either<Failure, ProductEntity>> getProductById(int productId) async {
+    try {
+      final product = await remoteHomeDataSource.getProductById(productId);
+      return Right(product);
+    } catch (e) {
+      return Left(ErrorHandler.handleError(e));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<ProductEntity>>> getProducts(
     int? categoryId, {
     required int offset,

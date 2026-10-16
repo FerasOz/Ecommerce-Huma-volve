@@ -17,6 +17,14 @@ class RemoteHomeDataSourceImpl implements RemoteHomeDataSource {
   }
 
   @override
+  Future<ProductModel> getProductById(int productId) async {
+    final response = await _dioHelper.dio.get(
+      '${ApiConstants.productsEndpoint}/$productId',
+    );
+    return ProductModel.fromJson(response.data);
+  }
+
+  @override
   Future<List<ProductModel>> getProducts(
     int? categoryId, {
     required int offset,

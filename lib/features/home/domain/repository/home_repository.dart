@@ -5,6 +5,7 @@ import 'package:ecommerce_app_huma_volve/features/home/domain/entities/product_e
 
 abstract class HomeRepository {
   Future<Either<Failure, List<CategoryEntity>>> getCategories();
+  Future<Either<Failure, ProductEntity>> getProductById(int productId);
   Future<Either<Failure, List<ProductEntity>>> getProducts(
     int? categoryId, {
     required int offset,
