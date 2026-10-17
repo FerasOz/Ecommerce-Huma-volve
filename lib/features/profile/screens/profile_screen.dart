@@ -1,16 +1,8 @@
-import 'package:ecommerce_app_huma_volve/core/helpers/storage/secure_storage.dart';
-import 'package:ecommerce_app_huma_volve/core/network/dio_helper.dart';
-import 'package:ecommerce_app_huma_volve/features/auth/login/data/repository/login_repository_impl.dart';
-import 'package:ecommerce_app_huma_volve/features/auth/login/data/source/remote_login_data_source_impl.dart';
-import 'package:ecommerce_app_huma_volve/features/auth/login/domain/use_cases/login_use_case.dart';
-import 'package:ecommerce_app_huma_volve/features/auth/login/presentation/cubit/login_cubit.dart';
+import 'package:ecommerce_app_huma_volve/features/profile/widgets/logout_bottom_sheet.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../core/dummy_data.dart';
 import '../../../core/theme.dart';
 import '../widgets/profile_menu_item.dart';
-import '../../auth/login/presentation/screens/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -98,32 +90,15 @@ class ProfileScreen extends StatelessWidget {
                     title: 'Logout',
                     isDestructive: true,
                     onTap: () {
-                      SecureStorage.deleteTokens();
-                      Navigator.pushReplacement(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (context, animation, secondaryAnimation) =>
-                                  BlocProvider(
-                                    create: (_) => LoginCubit(
-                                      loginUseCase: LoginUseCase(
-                                        LoginRepositoryImpl(
-                                          RemoteLoginDataSourceImpl(
-                                            dioHelper: DioHelper(),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    child: const LoginScreen(),
-                                  ),
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                );
-                              },
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(25.0),
+                          ),
                         ),
+                        builder: (context) => LogoutBottomSheet(),
                       );
                     },
                   ),

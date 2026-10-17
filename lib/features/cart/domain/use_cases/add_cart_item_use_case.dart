@@ -1,0 +1,13 @@
+import 'package:dartz/dartz.dart';
+import 'package:ecommerce_app_huma_volve/core/helpers/errors/failure.dart';
+import 'package:ecommerce_app_huma_volve/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:ecommerce_app_huma_volve/features/cart/domain/repository/cart_repository.dart';
+
+class AddCartItemUseCase {
+  final CartRepository cartRepository;
+
+  AddCartItemUseCase(this.cartRepository);
+
+  Future<Either<Failure, Unit>> invoke(CartItemEntity item) =>
+      cartRepository.addCartItem(item);
+}
