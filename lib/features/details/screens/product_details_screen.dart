@@ -1,6 +1,10 @@
 import 'package:ecommerce_app_huma_volve/features/details/widgets/share_product_button.dart';
+import 'package:ecommerce_app_huma_volve/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:ecommerce_app_huma_volve/features/cart/presentation/cubit/cart_cubit.dart';
+import 'package:ecommerce_app_huma_volve/features/cart/presentation/cubit/cart_states.dart';
 import 'package:ecommerce_app_huma_volve/features/home/domain/entities/product_entity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme.dart';
 import '../widgets/color_selector.dart';
@@ -17,6 +21,17 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  static const List<Color> _availableColors = [
+    Color(0xFF1E293B),
+    Color(0xFFF5F5F4),
+    Color(0xFF64748B),
+    Color(0xFF9A6B45),
+  ];
+  static const List<String> _availableSizes = ['S', 'M', 'L', 'XL'];
+
+  Color _selectedColor = _availableColors.first;
+  String _selectedSize = 'M';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,9 +144,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ),
                     const SizedBox(height: 12),
                     ColorSelector(
-                      colors: [],
-                      selectedColor: Colors.black,
-                      onColorSelected: (color) {},
+                      colors: _availableColors,
+                      selectedColor: _selectedColor,
+                      onColorSelected: (color) {
+                        setState(() => _selectedColor = color);
+                      },
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -141,24 +158,43 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ),
                     const SizedBox(height: 12),
                     SizeSelector(
-                      sizes: [],
-                      selectedSize: "",
-                      onSizeSelected: (size) {},
+                      sizes: _availableSizes,
+                      selectedSize: _selectedSize,
+                      onSizeSelected: (size) {
+                        setState(() => _selectedSize = size);
+                      },
                     ),
                     const SizedBox(height: 32),
                     PrimaryButton(
                       text: 'Add to Cart',
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final cartCubit = context.read<CartCubit>();
+                        await cartCubit.addItem(
+                          CartItemEntity(
+                            product: widget.product,
+                            quantity: 1,
+                            selectedColorValue: _selectedColor.toARGB32(),
+                            selectedSize: _selectedSize,
+                          ),
+                        );
+                        if (!mounted) return;
+
+                        final hasError = cartCubit.state is CartErrorState;
+                        messenger.showSnackBar(
                           SnackBar(
                             content: Text(
-                              '${widget.product.title} added to cart',
+                              hasError
+                                  ? 'Could not add ${widget.product.title} to cart'
+                                  : '${widget.product.title} added to cart',
                             ),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            backgroundColor: AppTheme.primary,
+                            backgroundColor: hasError
+                                ? AppTheme.error
+                                : AppTheme.primary,
                           ),
                         );
                       },
